@@ -1,0 +1,1796 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <link rel="manifest" href="manifest.json">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoodBloom - Premium Multi-Page Workspace</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        /* 1. VARIABEL WARNA & TEMA (BEBAS ABU-ABU KUSAM) */
+        :root {
+            --bg: #090d16;
+            --card: #111827;
+            --primary: #9d7df8; /* Softened Violet */
+            --primary-hover: #8e6ee9;
+            --text: #ffffff;
+            --text-dim: #38bdf8;
+            --border: #1f2937;
+            --input: #1f2937;
+            --success: #10b981;
+            --danger: #f43f5e;
+            --warning: #f59e0b;
+            --streak-border: #f97316;
+            --streak-bg: rgba(249, 115, 22, 0.1);
+            --streak-text: #f97316;
+
+            /* Soft & Vibrant Dashboard Icon Colors */
+            --icon-dashboard: #34d399; /* Softer Emerald Mint */
+            --icon-diary: #60a5fa;     /* Softer Sky Blue */
+            --icon-activity: #c084fc;  /* Softer Lavender Purple */
+            --icon-wellness: #fb7185;  /* Softer Rose Pink */
+            --icon-theme: #fbbf24;     /* Softer Amber Gold */
+        }
+        
+        [data-theme="light"] {
+            --bg: #f0fdfa;
+            --card: #ffffff;
+            --primary: #6d28d9;
+            --primary-hover: #5b21b6;
+            --text: #0f172a;
+            --text-dim: #0284c7;
+            --border: #cbd5e1;
+            --input: #f8fafc;
+            --success: #059669;
+            --danger: #e11d48;
+            --warning: #d97706;
+            --streak-border: #ea580c;
+            --streak-bg: #fff7ed;
+            --streak-text: #ea580c;
+        }
+
+        /* 2. SISTEM TATA LETAK UTAMA */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .screen { display: none; min-height: 100vh; }
+        .screen.active { display: flex; }
+
+        /* 3. LOGIN SCREEN */
+        #login-screen {
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at top right, rgba(139, 92, 246, 0.15), transparent 50%),
+                        radial-gradient(circle at bottom left, rgba(16, 185, 129, 0.1), transparent 50%);
+        }
+        .auth-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 40px;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+        .logo { font-size: 32px; font-weight: 800; color: var(--primary); margin-bottom: 15px; }
+        .auth-card h1 { font-size: 24px; font-weight: 800; margin-bottom: 10px; }
+        .auth-card p { color: var(--text-dim); font-size: 14px; margin-bottom: 30px; line-height: 1.6; }
+
+        /* 4. WORKSPACE UTAMA & SIDEBAR NAVIGASI BERWARNA & INTERAKTIF */
+        #app-screen { display: none; }
+        #app-screen.active { display: flex; flex-direction: row; }
+
+        .sidebar {
+            width: 80px;
+            background: var(--card);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 25px 0;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .sidebar-top { display: flex; flex-direction: column; align-items: center; gap: 20px; width: 100%; }
+        
+        .logo-small-container {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            overflow: hidden;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--input);
+            border: 2px solid var(--border);
+            transition: transform 0.2s;
+        }
+        .logo-small-container:hover {
+            transform: scale(1.05);
+            border-color: var(--primary);
+        }
+        .logo-small-emoji { font-size: 24px; }
+
+        /* GLOBAL MIKRO-INTERACTION EFEK KLIK */
+        .nav-menu-item, .primary-btn, .secondary-btn, .water-btn, .mood-item, .streak-badge, .google-btn, .logout-btn {
+            position: relative;
+            overflow: hidden;
+            outline: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Efek Mengempis Membal Saat Ditekan */
+        .nav-menu-item:active, .primary-btn:active, .secondary-btn:active, .water-btn:active, .mood-item:active, .streak-badge:active, .google-btn:active, .logout-btn:active {
+            transform: scale(0.92) !important;
+        }
+
+        /* ITEM NAVIGASI UTAMA DENGAN WARNA PREMIUM & GA BORING */
+        .nav-menu-item {
+            width: 52px;
+            height: 52px;
+            border-radius: 16px;
+            border: 1px solid transparent;
+            background: transparent;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .nav-menu-item i {
+            font-size: 20px;
+            transition: transform 0.3s ease, filter 0.3s ease;
+        }
+
+        .nav-menu-item:hover i {
+            transform: scale(1.1);
+        }
+
+        /* STYLE INDIVIDUAL TIAP IKON (WARNA SOFT & GLOWING EFFECT SAAT AKTIF) */
+        #nav-dashboard-btn { color: var(--icon-dashboard); }
+        #nav-dashboard-btn:hover { background: rgba(52, 211, 153, 0.08); }
+        #nav-dashboard-btn.active { 
+            background: rgba(52, 211, 153, 0.12); 
+            border-color: rgba(52, 211, 153, 0.3);
+            box-shadow: 0 0 15px rgba(52, 211, 153, 0.2);
+        }
+        #nav-dashboard-btn.active i { transform: scale(1.15); filter: drop-shadow(0 0 5px var(--icon-dashboard)); }
+
+        #nav-diary-btn { color: var(--icon-diary); }
+        #nav-diary-btn:hover { background: rgba(96, 165, 250, 0.08); }
+        #nav-diary-btn.active { 
+            background: rgba(96, 165, 250, 0.12); 
+            border-color: rgba(96, 165, 250, 0.3);
+            box-shadow: 0 0 15px rgba(96, 165, 250, 0.2);
+        }
+        #nav-diary-btn.active i { transform: scale(1.15); filter: drop-shadow(0 0 5px var(--icon-diary)); }
+
+        #nav-activity-btn { color: var(--icon-activity); }
+        #nav-activity-btn:hover { background: rgba(192, 132, 252, 0.08); }
+        #nav-activity-btn.active { 
+            background: rgba(192, 132, 252, 0.12); 
+            border-color: rgba(192, 132, 252, 0.3);
+            box-shadow: 0 0 15px rgba(192, 132, 252, 0.2);
+        }
+        #nav-activity-btn.active i { transform: scale(1.15); filter: drop-shadow(0 0 5px var(--icon-activity)); }
+
+        #nav-wellness-btn { color: var(--icon-wellness); }
+        #nav-wellness-btn:hover { background: rgba(251, 113, 133, 0.08); }
+        #nav-wellness-btn.active { 
+            background: rgba(251, 113, 133, 0.12); 
+            border-color: rgba(251, 113, 133, 0.3);
+            box-shadow: 0 0 15px rgba(251, 113, 133, 0.2);
+        }
+        #nav-wellness-btn.active i { transform: scale(1.15); filter: drop-shadow(0 0 5px var(--icon-wellness)); }
+
+        #nav-arcade-btn { 
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); 
+            color: #ffffff; 
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+        }
+        #nav-arcade-btn:hover { 
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); 
+            box-shadow: 0 6px 16px rgba(124, 58, 237, 0.5); 
+        }
+        #nav-arcade-btn.active { 
+            border-color: #c084fc;
+            box-shadow: 0 0 20px rgba(124, 58, 237, 0.6);
+        }
+        #nav-arcade-btn.active i { transform: scale(1.2) rotate(5deg); filter: drop-shadow(0 0 5px #ffffff); }
+
+        #theme-toggle { color: var(--icon-theme); }
+        #theme-toggle:hover { background: rgba(251, 191, 36, 0.08); }
+        
+        #theme-toggle .fa-sun, #theme-toggle .fa-moon { display: none; }
+        [data-theme="dark"] #theme-toggle .fa-sun { display: block; }   
+        [data-theme="light"] #theme-toggle .fa-moon { display: block; } 
+
+        .sidebar-bottom { width: 100%; display: flex; justify-content: center; }
+        .logout-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            border: none;
+            background: transparent;
+            color: var(--danger);
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .logout-btn:hover { background: rgba(244, 63, 94, 0.1); transform: scale(1.05); }
+
+        /* HEADER & KONTEN */
+        .content { flex-grow: 1; padding: 40px; max-height: 100vh; overflow-y: auto; }
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 25px;
+        }
+        .header-left h1 { font-size: 28px; font-weight: 800; margin-bottom: 6px; }
+        .header-left p { color: var(--text-dim); font-size: 14px; font-style: italic; }
+
+        .streak-badge {
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text);
+        }
+        
+        .streak-badge-active {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%) !important;
+            border: 1.5px solid #f59e0b !important;
+            color: #b45309 !important;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.25);
+            cursor: pointer;
+        }
+        [data-theme="dark"] .streak-badge-active {
+            background: linear-gradient(135deg, #1e1b4b 0%, #451a03 100%) !important;
+            border: 1.5px solid #d97706 !important;
+            color: #fde68a !important;
+            box-shadow: 0 4px 20px rgba(217, 119, 6, 0.35);
+        }
+        .streak-badge-active:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 25px rgba(245, 158, 11, 0.45);
+        }
+        .streak-fire-container {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-weight: 800;
+            font-size: 15px;
+            text-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
+            animation: goldenPulse 2s infinite ease-in-out;
+        }
+
+        @keyframes goldenPulse {
+            0% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(245, 158, 11, 0.4)); }
+            50% { transform: scale(1.06); filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.8)); }
+            100% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(245, 158, 11, 0.4)); }
+        }
+
+        /* GRID KARTU */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+        }
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+        .card h3 { font-size: 18px; font-weight: 800; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        .card p { font-size: 13px; color: var(--text-dim); margin-bottom: 20px; }
+
+        /* FORMULIR UTAMA & TOMBOL */
+        textarea, input[type="text"], input[type="password"], select, input[type="number"] {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--input);
+            color: var(--text);
+            font-family: inherit;
+            font-size: 13px;
+            outline: none;
+            margin-bottom: 15px;
+        }
+        textarea { height: 120px; resize: none; }
+        
+        .primary-btn, .secondary-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .primary-btn { background: var(--primary); color: #ffffff; border: none; }
+        .primary-btn:hover { background: var(--primary-hover); }
+        .secondary-btn { background: transparent; color: var(--text); border: 1px solid var(--border); }
+        .secondary-btn:hover { background: var(--border); }
+
+        /* Mood Selector */
+        .mood-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 20px; }
+        .mood-item {
+            background: var(--input);
+            border: 1px solid var(--border);
+            padding: 12px 6px;
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            color: var(--text);
+        }
+        .mood-item .emoji { font-size: 22px; }
+        .mood-item span:last-child { font-size: 11px; font-weight: 700; }
+        .mood-item:hover, .mood-item.selected {
+            border-color: var(--primary);
+            background: rgba(139, 92, 246, 0.1);
+            transform: translateY(-2px);
+        }
+
+        /* Hydration */
+        .water-widget { display: flex; align-items: center; justify-content: center; gap: 20px; font-size: 24px; font-weight: 800; margin: 20px 0; }
+        .water-btn {
+            width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border);
+            background: var(--input); color: var(--text); font-size: 18px; font-weight: 700; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .water-bar { width: 100%; height: 8px; background: var(--input); border-radius: 4px; overflow: hidden; }
+        #water-progress { width: 0%; height: 100%; background: #3b82f6; transition: width 0.3s ease; }
+
+        /* History Logs */
+        .journal-list { display: flex; flex-direction: column; gap: 12px; max-height: 250px; overflow-y: auto; padding-right: 5px; }
+        .journal-item {
+            background: var(--input); border: 1px solid var(--border); border-radius: 12px; padding: 15px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .journal-meta { display: flex; gap: 10px; align-items: center; margin-bottom: 4px; }
+        .journal-mood-tag { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; color: #fff; }
+        .journal-date { font-size: 11px; color: var(--text-dim); }
+        .journal-note { font-size: 13px; font-weight: 500; }
+
+        /* ANIMASI PERNAPASAN */
+        .breath-container-wrapper {
+            position: relative;
+            width: 260px;
+            height: 260px;
+            margin: 30px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .breath-master-scaler {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 4s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: scale(0.9);
+        }
+
+        .breath-circle {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: radial-gradient(circle, #00d2ff 0%, #0066ff 60%, rgba(0, 102, 255, 0) 100%);
+            border: 4px solid #00f0ff;
+            box-shadow: 0 0 50px #0066ff, inset 0 0 30px #00f0ff;
+        }
+
+        .breath-text-overlay {
+            position: relative;
+            z-index: 10;
+            color: #ffffff !important;
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-align: center;
+            pointer-events: none;
+            text-shadow: 
+                -2px -2px 0 #050b14,  2px -2px 0 #050b14,
+                -2px  2px 0 #050b14,  2px  2px 0 #050b14,
+                 0px  4px 10px rgba(0, 0, 0, 0.9),
+                 0px  0px 20px #00f0ff;
+            transition: opacity 0.3s ease;
+        }
+
+        .habit-row {
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--input); padding: 14px; border-radius: 12px; margin-bottom: 8px;
+            border: 1px solid var(--border); font-size: 13px; font-weight: 600;
+        }
+
+        /* Sub Pages Hide/Show */
+        .sub-page-view { display: none; }
+        .sub-page-view.active-page { display: block; }
+
+        /* Badge Items (Bebas Abu-abu) */
+        .badge-item {
+            padding: 15px; border-radius: 12px; background: var(--input); text-align: center;
+            border: 2px solid var(--border); opacity: 0.25; transition: all 0.3s;
+        }
+
+        /* MODAL UTAMA */
+        #info-modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center; padding: 20px;
+        }
+        .modal-card {
+            background: var(--card); border: 1px solid var(--border); padding: 30px;
+            border-radius: 20px; position: relative; width: 100%; max-width: 480px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        /* Profile Upload Area */
+        .profile-upload-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: var(--input);
+            padding: 20px;
+            border-radius: 16px;
+            border: 1px dashed var(--border);
+            margin-bottom: 15px;
+        }
+        .profile-preview-box {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            overflow: hidden;
+            background: var(--card);
+            border: 2px solid var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .profile-preview-img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="login-screen" class="screen active">
+        <div class="auth-card">
+            <div class="logo">🌸 MoodBloom</div>
+            <h1 id="lng-auth-title">Elevate Your Mind</h1>
+            <p id="lng-auth-desc">Satu klik untuk masuk dan sinkronisasikan jurnal kesehatan mentalmu secara instan.</p>
+            <button id="google-login-btn" class="google-btn" style="display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; padding: 14px; background: white; color: #1f2937; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 14px;">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google logo" style="width: 18px; height: 18px;">
+                <span id="lng-auth-btn">Masuk dengan Akun Google</span>
+            </button>
+        </div>
+    </div>
+
+    <div id="app-screen" class="screen">
+        
+        <nav class="sidebar">
+            <div class="sidebar-top">
+                <div class="logo-small-container" id="logo-action" title="Buka Profil & Pengaturan">
+                    <div id="sidebar-avatar-target" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
+                        <span class="logo-small-emoji">🌸</span>
+                    </div>
+                </div>
+
+                <button id="nav-dashboard-btn" class="nav-menu-item active" title="Dashboard & Analytics">
+                    <i class="fa-solid fa-chart-pie"></i>
+                </button>
+                <button id="nav-diary-btn" class="nav-menu-item" title="My Private Diary">
+                    <i class="fa-solid fa-book-bookmark"></i>
+                </button>
+                <button id="nav-activity-btn" class="nav-menu-item" title="Activity Tracker">
+                    <i class="fa-solid fa-heart-pulse"></i>
+                </button>
+                <button id="nav-wellness-btn" class="nav-menu-item" title="Wellness Gym & Habits">
+                    <i class="fa-solid fa-spa"></i>
+                </button>
+                <button id="nav-arcade-btn" class="nav-menu-item" title="Arcade & Milestones">
+                    <i class="fa-solid fa-trophy"></i>
+                </button>
+                
+                <button id="theme-toggle" class="nav-menu-item" title="Toggle Theme">
+                    <i class="fa-solid fa-sun"></i>
+                    <i class="fa-solid fa-moon"></i>
+                </button>
+            </div>
+            
+            <div class="sidebar-bottom">
+                <button id="logout-btn" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i></button>
+            </div>
+        </nav>
+
+        <main class="content">
+            <header class="app-header">
+                <div class="header-left">
+                    <h1><span id="lng-header-welcome">Welcome Back</span>, <span id="user-greeting">User</span></h1>
+                    <p id="daily-quote">"Loading inspiration..."</p>
+                </div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <button id="user-xp-history-btn" class="streak-badge" style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: #fff; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-clock-rotate-left"></i> <span id="header-total-xp">0 XP</span>
+                    </button>
+                    <button id="user-level-badge" class="streak-badge" style="background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%); color: #000; border: none; cursor: pointer;">
+                        <i class="fa-solid fa-crown"></i> <span id="level-txt">LVL 1</span>
+                    </button>
+                    <div id="user-streak-badge" class="streak-badge streak-badge-active">
+                        <div class="streak-fire-container">
+                            <span>🔥</span>
+                            <span id="streak-count">0</span>
+                        </div>
+                        &nbsp;<span id="lng-header-streak">Day Streak</span>
+                    </div>
+                </div>
+            </header>
+
+            <div id="page-dashboard" class="sub-page-view active-page">
+                <div class="dashboard-grid">
+                    <section class="card input-card">
+                        <h3 id="lng-dash-mood-title">How are you blooming today?</h3>
+                        <div class="mood-grid">
+                            <button class="mood-item" data-mood="Happy" data-color="#4ade80" data-score="5"><span class="emoji">✨</span><span id="lng-mood-happy">Happy</span></button>
+                            <button class="mood-item" data-mood="Calm" data-color="#60a5fa" data-score="4"><span class="emoji">🌿</span><span id="lng-mood-calm">Calm</span></button>
+                            <button class="mood-item" data-mood="Neutral" data-color="#38bdf8" data-score="3"><span class="emoji">☁️</span><span id="lng-mood-neutral">Neutral</span></button>
+                            <button class="mood-item" data-mood="Sad" data-color="#8b5cf6" data-score="2"><span class="emoji">💧</span><span id="lng-mood-sad">Sad</span></button>
+                            <button class="mood-item" data-mood="Angry" data-color="#f43f5e" data-score="1"><span class="emoji">🔥</span><span id="lng-mood-angry">Angry</span></button>
+                        </div>
+                        <textarea id="mood-note" placeholder="Reflect briefly on your current state..."></textarea>
+                        <button id="save-btn" class="primary-btn">Save Cloud Entry</button>
+                    </section>
+
+                    <section class="card water-card">
+                        <h3><i class="fa-solid fa-glass-water"></i> <span id="lng-dash-water-title">Hydration Tracker</span></h3>
+                        <p id="lng-dash-water-desc">Keep your body balanced. Goal: 8 Glasses</p>
+                        <div class="water-widget">
+                            <button id="remove-water-btn" class="water-btn">-</button>
+                            <span id="water-count">0</span> / 8 <span id="lng-dash-water-unit">Glasses</span>
+                            <button id="add-water-btn" class="water-btn">+</button>
+                        </div>
+                        <div class="water-bar"><div id="water-progress"></div></div>
+                    </section>
+
+                    <section class="card chart-card">
+                        <h3 id="lng-dash-chart-title">Analytics Trend Chart</h3>
+                        <div class="chart-container"><canvas id="moodChart"></canvas></div>
+                    </section>
+
+                    <section class="card history-card">
+                        <h3 id="lng-dash-logs-title">Secure History Logs</h3>
+                        <div id="journal-list" class="journal-list"></div>
+                        <button id="export-csv-btn" class="secondary-btn" style="margin-top: 15px;"><i class="fa-solid fa-download"></i> <span id="lng-dash-export">Export data to CSV</span></button>
+                    </section>
+                </div>
+            </div>
+
+            <div id="page-diary" class="sub-page-view">
+                <div id="diary-real-workspace" class="dashboard-grid">
+                    <section class="card diary-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <h3><i class="fa-solid fa-book-open" style="color: #3b82f6;"></i> <span id="lng-diary-input-title">Private Diary Input</span></h3>
+                        </div>
+                        <p id="lng-diary-input-desc">Tuliskan lembar cerita rahasia dengan perlindungan privasi enkripsi lokal.</p>
+                        <div style="margin-top: 15px;">
+                            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                                <input id="diary-title" type="text" placeholder="Judul tulisan hari ini..." style="flex: 2;">
+                                <select id="diary-category" style="flex: 1;">
+                                    <option value="📝 Personal">📝 Personal</option>
+                                    <option value="💼 Work">💼 Work</option>
+                                    <option value="❤️ Love">❤️ Love</option>
+                                    <option value="✈️ Travel">✈️ Travel</option>
+                                </select>
+                            </div>
+                            <textarea id="diary-body" placeholder="Tumpahkan seluruh isi kepala dan perasaanmu secara bebas..."></textarea>
+                            <button id="diary-save-btn" class="primary-btn" style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);">Simpan Cerita Diary</button>
+                        </div>
+                    </section>
+
+                    <section class="card diary-history-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 15px;">
+                            <h3><i class="fa-solid fa-box-archive" style="color: #60a5fa;"></i> <span id="lng-diary-archive-title">Diary Archives</span></h3>
+                            <input id="diary-search" type="text" placeholder="🔍 Cari..." style="max-width: 200px; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--input); color: var(--text); font-size: 12px; margin-bottom: 0;">
+                        </div>
+                        <div id="diary-logs-list" class="journal-list" style="max-height: 380px; overflow-y: auto;"></div>
+                    </section>
+                </div>
+            </div>
+
+            <div id="page-activity" class="sub-page-view">
+                <div class="dashboard-grid">
+                    <section class="card activity-form-card">
+                        <h3><i class="fa-solid fa-square-plus" style="color:#c084fc;"></i> <span id="lng-act-form-title">Log New Activity</span></h3>
+                        <div style="margin-top:15px;">
+                            <input id="act-name" type="text" placeholder="Nama catatan aktivitas...">
+                            <select id="act-type">
+                                <option value="social">👥 Social Life & Friends</option>
+                                <option value="love">❤️ Romance & Partner</option>
+                                <option value="sport">🏃 Physical Health / Sport</option>
+                                <option value="work">💼 Academic & Career Focus</option>
+                                <option value="hobbies">🎨 Creative Arts & Hobbies</option>
+                            </select>
+                            <textarea id="act-desc" placeholder="Catatan tambahan petualanganmu..." style="height:100px;"></textarea>
+                            <button id="act-save-btn" class="primary-btn" style="background: linear-gradient(135deg, #c084fc 0%, #a855f7 100%);">Rekam Aktivitas</button>
+                        </div>
+                    </section>
+
+                    <section class="card activity-logs-card">
+                        <h3><i class="fa-solid fa-list-check" style="color:#a855f7;"></i> <span id="lng-act-logs-title">Activity Logs</span></h3>
+                        <div id="activity-logs-list" class="journal-list" style="max-height:350px;"></div>
+                    </section>
+                </div>
+            </div>
+
+            <div id="page-wellness" class="sub-page-view">
+                <div class="dashboard-grid">
+                    <section class="card meditation-card" style="text-align: center;">
+                        <h3><i class="fa-solid fa-spa" style="color:#f43f5e;"></i> <span id="lng-well-title">Mental Wellness Gym</span></h3>
+                        <p id="lng-well-desc" style="font-size:12px; color:var(--text-dim); margin-bottom: 15px;">Redakan stres secara real-time dengan melatih ritme pernapasan dalam.</p>
+                        <div class="breath-container-wrapper">
+                            <div id="breath-master-container" class="breath-master-scaler">
+                                <div class="breath-circle"></div>
+                                <div id="breath-guide-text" class="breath-text-overlay">READY</div>
+                            </div>
+                        </div>
+                        <div style="display:flex; justify-content:center; gap:10px; margin-top:15px;">
+                            <button id="start-breath-btn" class="primary-btn" style="width:auto; padding:10px 20px; font-size:13px; background: linear-gradient(135deg, #f43f5e 0%, #be185d 100%);">Start Exercise (+15 XP)</button>
+                        </div>
+                    </section>
+
+                    <section class="card habit-card">
+                        <h3><i class="fa-solid fa-circle-check" style="color:#10b981;"></i> <span id="lng-habit-title">Daily Habits Quests</span></h3>
+                        <p id="lng-habit-desc" style="font-size:12px; color:var(--text-dim); margin-bottom:15px;">Selesaikan misi kebiasaan sehat hari ini untuk mendongkrak kebiasaan hidup positif.</p>
+                        <div id="habits-container-list">
+                            <div class="habit-row"><span>🧘 Meditasi Pagi (5 Mins)</span><input type="checkbox" id="hb-1" class="habit-chk"></div>
+                            <div class="habit-row"><span>📖 Membaca Buku Edukasi/Jurnal</span><input type="checkbox" id="hb-2" class="habit-chk"></div>
+                            <div class="habit-row"><span>🥗 Makan Sehat Teratur & Buah</span><input type="checkbox" id="hb-3" class="habit-chk"></div>
+                            <div class="habit-row"><span>🚫 Batasi Social Media &lt; 1 Jam</span><input type="checkbox" id="hb-4" class="habit-chk"></div>
+                        </div>
+                        <button id="claim-habit-xp-btn" class="primary-btn" style="margin-top:15px; background: linear-gradient(135deg, #10b981 0%, #059669 100%);">Klaim Rutinitas Habit Combo (+20 XP)</button>
+                    </section>
+                </div>
+            </div>
+
+            <div id="page-arcade" class="sub-page-view">
+                <div class="dashboard-grid">
+                    <section class="card levels-card">
+                        <h3><i class="fa-solid fa-circle-nodes" style="color:#fbbf24;"></i> <span id="lng-arc-title">Bloom Experience Level Tracker</span></h3>
+                        <p id="lng-arc-desc">Kumpulkan XP dari rutinitas harian untuk menanjaki tingkat level premium yang menantang.</p>
+                        
+                        <div style="background: var(--input); padding: 20px; border-radius:16px; border:1px solid var(--border); margin-top:15px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; font-weight:800;">
+                                <span id="arcade-lvl-display" style="color:var(--warning); font-size:16px;">LEVEL 1</span>
+                                <span id="arcade-xp-display" style="color:var(--text-dim); font-size:13px;">0 / 150 XP</span>
+                            </div>
+                            <div style="width:100%; height:12px; background:var(--card); border-radius:6px; border:1px solid var(--border); overflow:hidden;">
+                                <div id="arcade-xp-progress-bar" style="width:0%; height:100%; background: linear-gradient(90deg, #ca8a04 0%, #eab308 100%); transition: width 0.4s ease;"></div>
+                            </div>
+                            <p style="font-size:11px; margin-top:8px; font-style:italic; color:var(--text-dim);">Sistem Terkalibrasi: 1 Level membutuhkan 150 XP konstan.</p>
+                        </div>
+                    </section>
+
+                    <section class="card sleep-card">
+                        <h3><i class="fa-solid fa-moon" style="color:#3b82f6;"></i> <span id="lng-arc-sleep-title">Sleep & Quality Tracker</span></h3>
+                        <p id="lng-arc-sleep-desc">Rekam tidur idealmu untuk menjaga kestabilan emosional harian (+25 XP).</p>
+                        <div style="margin-top:15px; display:flex; gap:10px;">
+                            <input type="number" id="sleep-hours" placeholder="Durasi (Jam)" min="1" max="24" style="margin-bottom:0;">
+                            <select id="sleep-quality" style="margin-bottom:0;">
+                                <option value="Sempurna">💎 Sangat Nyenyak / Sempurna</option>
+                                <option value="Cukup">☕ Cukup Layak</option>
+                                <option value="Buruk">⚠️ Kurang Tidur / Buruk</option>
+                            </select>
+                        </div>
+                        <button id="save-sleep-btn" class="primary-btn" style="margin-top:15px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">Simpan Log Tidur</button>
+                    </section>
+
+                    <section class="card gratitude-card">
+                        <h3><i class="fa-solid fa-heart" style="color:#f43f5e;"></i> <span id="lng-arc-grat-title">Daily Gratitude Board</span></h3>
+                        <p id="lng-arc-grat-desc">Kunci 3 afirmasi hal positif yang kamu syukuri hari ini demi kebahagiaan batin (+30 XP).</p>
+                        <div style="margin-top:15px;">
+                            <input type="text" id="gr-1" placeholder="1. Hal utama yang paling disyukuri...">
+                            <input type="text" id="gr-2" placeholder="2. Orang atau momen indah hari ini...">
+                            <input type="text" id="gr-3" placeholder="3. Kemenangan kecil diri sendiri...">
+                            <button id="save-gratitude-btn" class="primary-btn" style="background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);">Kunci Papan Syukur</button>
+                        </div>
+                    </section>
+
+                    <section class="card badges-card">
+                        <h3><i class="fa-solid fa-medal" style="color:#34d399;"></i> <span id="lng-arc-badges-title">Unlockable Mental Badges</span></h3>
+                        <p id="lng-arc-badges-desc">Penghargaan eksklusif atas konsistensi dan perkembangan psikologismu:</p>
+                        <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:15px; margin-top:15px;">
+                            <div id="badge-streak" class="badge-item">🎯<br><span style="font-size:11px; font-weight:800; display:block; margin-top:5px;">Streak Master</span><span id="lng-badge-desc1" style="font-size:10px; color:var(--text-dim);">Have a 3-day streak</span></div>
+                            <div id="badge-diary" class="badge-item">📚<br><span style="font-size:11px; font-weight:800; display:block; margin-top:5px;">Storyteller</span><span id="lng-badge-desc2" style="font-size:10px; color:var(--text-dim);">Write 3 Diary Stories</span></div>
+                            <div id="badge-sleep" class="badge-item">💤<br><span style="font-size:11px; font-weight:800; display:block; margin-top:5px;">Deep Sleeper</span><span id="lng-badge-desc3" style="font-size:10px; color:var(--text-dim);">Ideal sleep >= 7 Hours</span></div>
+                            <div id="badge-gratitude" class="badge-item">💖<br><span style="font-size:11px; font-weight:800; display:block; margin-top:5px;">Optimist Aura</span><span id="lng-badge-desc4" style="font-size:10px; color:var(--text-dim);">Lock gratitude board</span></div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="info-modal">
+        <div class="modal-card">
+            <button id="modal-close-btn" style="position:absolute; top:15px; right:15px; background:transparent; border:none; color:var(--text-dim); font-size:18px; cursor:pointer;"><i class="fa-solid fa-circle-xmark"></i></button>
+            <div id="modal-content-area" style="color:var(--text);"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- TRANSLASI BAHASA MULTI-BAHASA ---
+        const translations = {
+            id: {
+                authTitle: "Elevate Your Mind",
+                authDesc: "Satu klik untuk masuk dan sinkronisasikan jurnal kesehatan mentalmu secara instan.",
+                authBtn: "Masuk dengan Akun Google",
+                navSettings: "Pengaturan",
+                welcome: "Selamat Datang",
+                streak: "Hari Beruntun",
+                dashMoodTitle: "Bagaimana kondisi emosimu hari ini?",
+                moodHappy: "Senang",
+                moodCalm: "Tenang",
+                moodNeutral: "Biasa Saja",
+                moodSad: "Sedih",
+                moodAngry: "Marah",
+                dashMoodPlaceholder: "Refleksikan pikiran atau perasaanmu saat ini secara singkat...",
+                dashMoodSave: "Simpan Catatan Emosi",
+                dashWaterTitle: "Pelacak Hidrasi Tubuh",
+                dashWaterDesc: "Jaga keseimbangan cairan tubuhmu. Target: 8 Gelas",
+                dashWaterUnit: "Gelas",
+                dashChartTitle: "Grafik Tren Analisis Emosi",
+                dashLogsTitle: "Arsip Log Riwayat Aman",
+                dashExport: "Ekspor Data ke File CSV",
+                diaryInputTitle: "Input Catatan Diary Privat",
+                diaryInputDesc: "Tuliskan lembar cerita rahasia dengan perlindungan privasi enkripsi lokal.",
+                diaryTitlePlh: "Judul tulisan hari ini...",
+                diaryBodyPlh: "Tumpahkan seluruh isi kepala dan perasaanmu secara bebas...",
+                diarySaveBtn: "Simpan Cerita Diary",
+                diaryArchiveTitle: "Arsip Lembaran Diary",
+                diarySearchPlh: "🔍 Cari...",
+                actFormTitle: "Catat Aktivitas Baru",
+                actNamePlh: "Nama aktivitas...",
+                actDescPlh: "Catatan tambahan petualanganmu...",
+                actSaveBtn: "Rekam Aktivitas",
+                actLogsTitle: "Log Riwayat Aktivitas",
+                arcTitle: "Bloom Experience Level Tracker",
+                arcDesc: "Kumpulkan XP dari rutinitas harian untuk menanjaki tingkat level premium yang menantang.",
+                arcSleepTitle: "Pelacak Kualitas & Waktu Tidur",
+                arcSleepDesc: "Rekam tidur idealmu untuk menjaga kestabilan emosional harian (+25 XP).",
+                arcSleepDur: "Durasi (Jam)",
+                arcSleepQlt: "Kualitas",
+                arcSleepBtn: "Simpan Log Tidur",
+                arcGratTitle: "Papan Afirmasi Syukur Harian",
+                arcGratDesc: "Kunci 3 afirmasi hal positif yang kamu syukuri hari ini demi kebahagiaan batin (+30 XP).",
+                arcGratBtn: "Kunci Papan Syukur",
+                arcBadgesTitle: "Medali Penghargaan Mental",
+                arcBadgesDesc: "Penghargaan eksklusif atas konsistensi dan perkembangan psikologismu:",
+                badgeDesc1: "Miliki 3 hari beruntun",
+                badgeDesc2: "Tulis 3 lembar cerita diary",
+                badgeDesc3: "Tidur ideal >= 7 jam",
+                badgeDesc4: "Kunci papan syukur harian",
+                profTitle: "Personalisasi Profil & Pengaturan",
+                profNamePlh: "Nama panggilan khusus...",
+                profBioPlh: "Status bio motivasi...",
+                profLangLabel: "Pengaturan Bahasa Aplikasi",
+                profSaveBtn: "Simpan Preferensi Profil",
+                noData: "Belum ada catatan emosi tersimpan.",
+                noDiary: "Belum ada arsip diary ditulis.",
+                noAct: "Belum ada aktivitas terekam.",
+                alertSleep: "Catatan tidur berhasil disimpan! (+25 XP) 💤",
+                alertGrat: "Afirmasi syukur berhasil dikunci! (+30 XP) 💖",
+                alertSaveProf: "Preferensi profil berhasil diperbarui!",
+                wellTitle: "Gym Kebugaran Mental",
+                wellDesc: "Redakan stres secara real-time dengan melatih ritme pernapasan dalam."
+            },
+            en: {
+                authTitle: "Elevate Your Mind",
+                authDesc: "Single click to step in and synchronize your mental health journals instantly.",
+                authBtn: "Sign In with Google Account",
+                navSettings: "Settings",
+                welcome: "Welcome Back",
+                streak: "Day Streak",
+                dashMoodTitle: "How are you blooming today?",
+                moodHappy: "Happy",
+                moodCalm: "Calm",
+                moodNeutral: "Neutral",
+                moodSad: "Sad",
+                moodAngry: "Angry",
+                dashMoodPlaceholder: "Reflect briefly on your current state...",
+                dashMoodSave: "Save Cloud Entry",
+                dashWaterTitle: "Hydration Tracker",
+                dashWaterDesc: "Keep your body balanced. Goal: 8 Glasses",
+                dashWaterUnit: "Glasses",
+                dashChartTitle: "Analytics Trend Chart",
+                dashLogsTitle: "Secure History Logs",
+                dashExport: "Export data to CSV",
+                diaryInputTitle: "Private Diary Input",
+                diaryInputDesc: "Write down secret story sheets protected by secure local encryption.",
+                diaryTitlePlh: "Today's writing title...",
+                diaryBodyPlh: "Pour out your entire head and feelings freely...",
+                diarySaveBtn: "Save Diary Story",
+                diaryArchiveTitle: "Diary Archives",
+                diarySearchPlh: "🔍 Search...",
+                actFormTitle: "Log New Activity",
+                actNamePlh: "Activity name...",
+                actDescPlh: "Additional notes...",
+                actSaveBtn: "Record Activity",
+                actLogsTitle: "Activity Logs",
+                arcTitle: "Bloom Experience Level Tracker",
+                arcDesc: "Collect XP from daily routines to climb up difficult premium levels.",
+                arcSleepTitle: "Sleep & Quality Tracker",
+                arcSleepDesc: "Record your ideal sleep to maintain emotional stability (+25 XP).",
+                arcSleepDur: "Duration (Hours)",
+                arcSleepQlt: "Quality",
+                arcSleepBtn: "Save Sleep Log",
+                arcGratTitle: "Daily Gratitude Board",
+                arcGratDesc: "Lock gratitude board items you are grateful for today (+30 XP).",
+                arcGratBtn: "Lock Gratitude Board",
+                arcBadgesTitle: "Unlockable Mental Badges",
+                arcBadgesDesc: "Exclusive rewards for your psychological growth and consistency:",
+                badgeDesc1: "Have a 3-day streak",
+                badgeDesc2: "Write 3 Diary stories",
+                badgeDesc3: "Ideal sleep >= 7 hours",
+                badgeDesc4: "Lock gratitude affirmations",
+                profTitle: "Profile Personalization Settings",
+                profNamePlh: "Custom nickname...",
+                profBioPlh: "Motivation bio status...",
+                profLangLabel: "Application Language Settings",
+                profSaveBtn: "Save Profile Preferences",
+                noData: "No emotional data recorded.",
+                noDiary: "No diary sheets found.",
+                noAct: "No activities found.",
+                alertSleep: "Sleep log saved! (+25 XP). 💤",
+                alertGrat: "Today's affirmations locked! (+30 XP). 💖",
+                alertSaveProf: "Profile preferences updated!",
+                wellTitle: "Wellness Gym",
+                wellDesc: "Relieve stress in real-time by practicing deep breathing rhythms."
+            }
+        };
+
+        // --- MANAJEMEN STATE APLIKASI UTAMA ---
+        let appState = {
+            user: null,
+            language: localStorage.getItem('bloom_language') || 'id',
+            entries: JSON.parse(localStorage.getItem('bloom_entries')) || [],
+            diaries: JSON.parse(localStorage.getItem('bloom_diaries')) || [],
+            activities: JSON.parse(localStorage.getItem('bloom_activities')) || [],
+            sleepLog: JSON.parse(localStorage.getItem('bloom_sleep_log')) || null,
+            gratitudeLocked: localStorage.getItem('bloom_gratitude_locked') === 'true' || false,
+            
+            // Konfigurasi Baru Gamifikasi: 1 Level = 150 XP konstan
+            xp: parseInt(localStorage.getItem('bloom_xp')) || 0,
+            xpHistory: JSON.parse(localStorage.getItem('bloom_xp_history')) || [],
+            
+            streak: parseInt(localStorage.getItem('bloom_streak_count')) || 0,
+            lastEntryDate: localStorage.getItem('bloom_last_entry_date') || null,
+            theme: localStorage.getItem('bloom_theme') || 'dark',
+            waterCount: parseInt(localStorage.getItem('bloom_water')) || 0,
+            selectedMood: null
+        };
+
+        const activityColors = {
+            social: '#3b82f6',
+            love: '#f43f5e',
+            sport: '#10b981',
+            work: '#eab308',
+            hobbies: '#a855f7'
+        };
+
+        let moodChartInstance = null;
+        const quotesList = [
+            "\"Tarik napas panjang, hembuskan rasa penat. Jiwa yang tenang adalah modal utama pertumbuhan.\"",
+            "\"Setiap langkah kecil menuju kedamaian mental adalah kemenangan besar yang layak apresiasi.\"",
+            "\"Kamu adalah kuncup bunga yang sedang mekar. Beri dirimu waktu dan ruang untuk bertumbuh.\"",
+            "\"Jangan biarkan badai hari ini meredupkan cahaya ketenangan di dalam dirimu.\""
+        ];
+
+        // --- KICKSTARTER UTAMA ---
+        document.addEventListener('DOMContentLoaded', () => {
+            document.documentElement.setAttribute('data-theme', appState.theme);
+            const sessionUser = localStorage.getItem('bloom_session_user');
+            if (sessionUser) {
+                appState.user = JSON.parse(sessionUser);
+                routeToDashboard();
+            } else {
+                routeToAuth();
+            }
+            setupActionTriggers();
+            setupPageNavigationRouter();
+            setupModalTriggers();
+            setupWellnessEngine();
+            setupAvatarImageLoader();
+        });
+
+        function routeToAuth() {
+            applyLanguageDOM();
+            document.getElementById('login-screen').classList.add('active');
+            document.getElementById('app-screen').classList.remove('active');
+        }
+
+        function routeToDashboard() {
+            applyLanguageDOM();
+            calculateAndVerifyStreakLogic();
+            document.getElementById('login-screen').classList.remove('active');
+            document.getElementById('app-screen').classList.add('active');
+            
+            // Render Seluruh UI Konten
+            document.getElementById('user-greeting').innerText = appState.user.displayName || "Sahabat Bloom";
+            document.getElementById('daily-quote').innerText = quotesList[Math.floor(Math.random() * quotesList.length)];
+            
+            refreshGamificationData();
+            renderLogs();
+            renderDiaries();
+            renderActivities();
+            renderAnalyticsChart();
+            renderBadgesArcadeGrid();
+        }
+
+        function applyLanguageDOM() {
+            const l = translations[appState.language];
+            
+            // Auth Screen
+            document.getElementById('lng-auth-title').innerText = l.authTitle;
+            document.getElementById('lng-auth-desc').innerText = l.authDesc;
+            document.getElementById('lng-auth-btn').innerText = l.authBtn;
+
+            // Header Area
+            document.getElementById('lng-header-welcome').innerText = l.welcome;
+            document.getElementById('lng-header-streak').innerText = l.streak;
+
+            // Dashboard View
+            document.getElementById('lng-dash-mood-title').innerText = l.dashMoodTitle;
+            document.getElementById('lng-mood-happy').innerText = l.moodHappy;
+            document.getElementById('lng-mood-calm').innerText = l.moodCalm;
+            document.getElementById('lng-mood-neutral').innerText = l.moodNeutral;
+            document.getElementById('lng-mood-sad').innerText = l.moodSad;
+            document.getElementById('lng-mood-angry').innerText = l.moodAngry;
+            document.getElementById('mood-note').placeholder = l.dashMoodPlaceholder;
+            document.getElementById('save-btn').innerText = l.dashMoodSave;
+            document.getElementById('lng-dash-water-title').innerText = l.dashWaterTitle;
+            document.getElementById('lng-dash-water-desc').innerText = l.dashWaterDesc;
+            document.getElementById('lng-dash-water-unit').innerText = l.dashWaterUnit;
+            document.getElementById('lng-dash-chart-title').innerText = l.dashChartTitle;
+            document.getElementById('lng-dash-logs-title').innerText = l.dashLogsTitle;
+            document.getElementById('lng-dash-export').innerText = l.dashExport;
+
+            // Diary Page
+            document.getElementById('lng-diary-input-title').innerText = l.diaryInputTitle;
+            document.getElementById('lng-diary-input-desc').innerText = l.diaryInputDesc;
+            document.getElementById('diary-title').placeholder = l.diaryTitlePlh;
+            document.getElementById('diary-body').placeholder = l.diaryBodyPlh;
+            document.getElementById('diary-save-btn').innerText = l.diarySaveBtn;
+            document.getElementById('lng-diary-archive-title').innerText = l.diaryArchiveTitle;
+            document.getElementById('diary-search').placeholder = l.diarySearchPlh;
+
+            // Activity Page
+            document.getElementById('lng-act-form-title').innerText = l.actFormTitle;
+            document.getElementById('act-name').placeholder = l.actNamePlh;
+            document.getElementById('act-desc').placeholder = l.actDescPlh;
+            document.getElementById('act-save-btn').innerText = l.actSaveBtn;
+            document.getElementById('lng-act-logs-title').innerText = l.actLogsTitle;
+
+            // Wellness Page
+            document.getElementById('lng-well-title').innerText = l.wellTitle;
+            document.getElementById('lng-well-desc').innerText = l.wellDesc;
+            document.getElementById('lng-habit-title').innerText = l.habitTitle;
+            document.getElementById('lng-habit-desc').innerText = l.habitDesc;
+
+            // Arcade Page
+            document.getElementById('lng-arc-title').innerText = l.arcTitle;
+            document.getElementById('lng-arc-desc').innerText = l.arcDesc;
+            document.getElementById('lng-arc-sleep-title').innerText = l.arcSleepTitle;
+            document.getElementById('lng-arc-sleep-desc').innerText = l.arcSleepDesc;
+            document.getElementById('save-sleep-btn').innerText = l.arcSleepBtn;
+            document.getElementById('lng-arc-grat-title').innerText = l.arcGratTitle;
+            document.getElementById('lng-arc-grat-desc').innerText = l.arcGratDesc;
+            document.getElementById('save-gratitude-btn').innerText = l.arcGratBtn;
+            document.getElementById('lng-arc-badges-title').innerText = l.arcBadgesTitle;
+            document.getElementById('lng-arc-badges-desc').innerText = l.arcBadgesDesc;
+            document.getElementById('lng-badge-desc1').innerText = l.badgeDesc1;
+            document.getElementById('lng-badge-desc2').innerText = l.badgeDesc2;
+            document.getElementById('lng-badge-desc3').innerText = l.badgeDesc3;
+            document.getElementById('lng-badge-desc4').innerText = l.badgeDesc4;
+        }
+
+        // --- SINKRONISASI SISTEM GAMIFIKASI TERBARU (1 LEVEL = 150 XP KONSTAN) ---
+        function addExperiencePoints(points, reason) {
+            appState.xp += points;
+            localStorage.setItem('bloom_xp', appState.xp);
+
+            const newHistory = {
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                points,
+                reason
+            };
+            appState.xpHistory.unshift(newHistory);
+            if(appState.xpHistory.length > 30) appState.xpHistory.pop();
+            localStorage.setItem('bloom_xp_history', JSON.stringify(appState.xpHistory));
+            
+            // Check Level Up instan secara sinkron
+            const system = calculateLevelSystem(appState.xp);
+            
+            // Jika terdeteksi naik level baru dibanding rekaman sebelumnya, picu alert selebrasi visual
+            const prevLvl = parseInt(document.getElementById('level-txt').innerText.replace('LVL ', '')) || 1;
+            if (system.currentLevel > prevLvl) {
+                setTimeout(() => {
+                    alert(`🎉 LEVEL UP! Selamat, kamu berhasil naik ke Level ${system.currentLevel}! Terus pertahankan kesehatan mental positifmu!`);
+                }, 300);
+            }
+        }
+
+        function calculateLevelSystem(totalXp) {
+            const XP_PER_LEVEL = 150; // Aturan konstan baru
+            
+            // Rumus matematika murni: Level dihitung dari pembagian bulat, sisa XP adalah sisa bagi (modulus)
+            let level = Math.floor(totalXp / XP_PER_LEVEL) + 1;
+            let remainingXp = totalXp % XP_PER_LEVEL;
+            
+            return {
+                currentLevel: level,
+                remainingXp: remainingXp,
+                nextLevelXp: XP_PER_LEVEL,
+                percentage: (remainingXp / XP_PER_LEVEL) * 100
+            };
+        }
+
+        function refreshGamificationData() {
+            const system = calculateLevelSystem(appState.xp);
+            
+            // Update Tampilan Top Header Navbar
+            document.getElementById('header-total-xp').innerText = `${appState.xp} Total XP`;
+            document.getElementById('level-txt').innerText = `LVL ${system.currentLevel}`;
+            document.getElementById('streak-count').innerText = appState.streak;
+
+            // Update Tampilan Bar & Teks di Menu Arcade
+            document.getElementById('arcade-lvl-display').innerText = `LEVEL ${system.currentLevel}`;
+            document.getElementById('arcade-xp-display').innerText = `${system.remainingXp} / ${system.nextLevelXp} XP`;
+            document.getElementById('arcade-xp-progress-bar').style.width = `${system.percentage}%`;
+
+            // Update Hidratai Progres Bar Harian
+            document.getElementById('water-count').innerText = appState.waterCount;
+            const waterPercentage = Math.min((appState.waterCount / 8) * 100, 100);
+            document.getElementById('water-progress').style.width = `${waterPercentage}%`;
+        }
+
+        function calculateAndVerifyStreakLogic() {
+            if(!appState.lastEntryDate) return;
+            const today = new Date();
+            const lastDate = new Date(appState.lastEntryDate);
+            
+            today.setHours(0,0,0,0);
+            lastDate.setHours(0,0,0,0);
+            
+            const diffTime = Math.abs(today - lastDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if(diffDays > 1) {
+                appState.streak = 0;
+                localStorage.setItem('bloom_streak_count', 0);
+            }
+        }
+
+        function renderBadgesArcadeGrid() {
+            // Evaluasi Syarat Pencapaian Medali Mental
+            const isStreakActive = appState.streak >= 3;
+            const isDiaryActive = appState.diaries.length >= 3;
+            const isSleepActive = appState.sleepLog && appState.sleepLog.hours >= 7;
+            const isGratitudeActive = appState.gratitudeLocked === true;
+
+            const bStreak = document.getElementById('badge-streak');
+            const bDiary = document.getElementById('badge-diary');
+            const bSleep = document.getElementById('badge-sleep');
+            const bGrat = document.getElementById('badge-gratitude');
+
+            if(isStreakActive) { bStreak.style.opacity = "1"; bStreak.style.borderColor = "var(--warning)"; bStreak.style.boxShadow = "0 0 10px rgba(245,158,11,0.2)"; }
+            if(isDiaryActive) { bDiary.style.opacity = "1"; bDiary.style.borderColor = "var(--primary)"; bDiary.style.boxShadow = "0 0 10px rgba(139,92,246,0.2)"; }
+            if(isSleepActive) { bSleep.style.opacity = "1"; bSleep.style.borderColor = "#3b82f6"; bSleep.style.boxShadow = "0 0 10px rgba(59,130,246,0.2)"; }
+            if(isGratitudeActive) { bGrat.style.opacity = "1"; bGrat.style.borderColor = "var(--danger)"; bGrat.style.boxShadow = "0 0 10px rgba(244,63,94,0.2)"; }
+        }
+
+        // --- INTERFACE RENDERING ENGINE FOR HISTORY LOGS ---
+        function renderLogs() {
+            const container = document.getElementById('journal-list');
+            if(!container) return;
+            container.innerHTML = '';
+
+            if (appState.entries.length === 0) {
+                container.innerHTML = `<p class="no-entries" style="text-align:center; font-size:12px; color:var(--text-dim); padding:20px;">${translations[appState.language].noData}</p>`;
+                return;
+            }
+
+            appState.entries.forEach(e => {
+                const item = document.createElement('div');
+                item.className = 'journal-item';
+                item.innerHTML = `
+                    <div style="flex:1; padding-right:10px;">
+                        <div class="journal-meta">
+                            <span class="journal-mood-tag" style="background-color:${e.color || '#9d7df8'};">${translations[appState.language]['mood' + e.mood] || e.mood}</span>
+                            <span class="journal-date">${e.date}</span>
+                        </div>
+                        <div class="journal-note">${e.note || '<i>No reflection text</i>'}</div>
+                    </div>
+                    <button class="delete-btn" onclick="deleteMoodItem(${e.id})" style="background:transparent; border:none; color:var(--danger); cursor:pointer; font-size:14px; padding:5px;"><i class="fa-solid fa-trash-can"></i></button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function renderDiaries() {
+            const container = document.getElementById('diary-logs-list');
+            if(!container) return;
+            container.innerHTML = '';
+
+            if (appState.diaries.length === 0) {
+                container.innerHTML = `<p style="text-align:center; font-size:12px; color:var(--text-dim); padding:20px;">${translations[appState.language].noDiary}</p>`;
+                return;
+            }
+
+            appState.diaries.forEach(d => {
+                const item = document.createElement('div');
+                item.className = 'journal-item';
+                item.innerHTML = `
+                    <div style="flex:1; padding-right:10px;" onclick="viewFullDiaryModalText(${d.id})">
+                        <div class="journal-meta">
+                            <span style="font-size:11px; font-weight:700; color:var(--text-dim); background:var(--card); padding:20px 8px; border-radius:6px; border:1px solid var(--border);">${d.category}</span>
+                            <span class="journal-date">${d.date}</span>
+                        </div>
+                        <div class="journal-note" style="font-weight:700; color:var(--text); margin-bottom:2px; cursor:pointer;">${d.title}</div>
+                        <div class="journal-note" style="color:var(--text-dim); font-size:12px; white-space:nowrap; text-overflow:ellipsis; overflow:hidden; max-width:280px; cursor:pointer;">${d.body}</div>
+                    </div>
+                    <button class="delete-btn" onclick="deleteDiaryItem(${d.id})" style="background:transparent; border:none; color:var(--danger); cursor:pointer; font-size:14px; padding:5px;"><i class="fa-solid fa-trash-can"></i></button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function renderActivities() {
+            const container = document.getElementById('activity-logs-list');
+            if(!container) return;
+            container.innerHTML = '';
+
+            if (appState.activities.length === 0) {
+                container.innerHTML = `<p style="text-align:center; font-size:12px; color:var(--text-dim); padding:20px;">${translations[appState.language].noAct}</p>`;
+                return;
+            }
+
+            appState.activities.forEach(a => {
+                const color = activityColors[a.type] || '#fff';
+                const item = document.createElement('div');
+                item.className = 'journal-item';
+                item.innerHTML = `
+                    <div style="flex:1; padding-right:10px;">
+                        <div class="journal-meta">
+                            <span style="font-size:10px; font-weight:800; padding:2px 6px; border-radius:4px; color:${color}; border:1px solid ${color}66;">${a.type.toUpperCase()}</span>
+                            <span class="journal-date">${a.date}</span>
+                        </div>
+                        <div class="journal-note" style="font-weight:700; color:var(--text);">${a.name}</div>
+                        <div class="journal-note" style="color:var(--text-dim); font-size:12px;">${a.desc}</div>
+                    </div>
+                    <button class="delete-btn" onclick="deleteActivityItem(${a.id})" style="background:transparent; border:none; color:var(--danger); cursor:pointer; font-size:14px; padding-left:10px;"><i class="fa-solid fa-trash-can"></i></button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        // --- SISTEM PENGHAPUSAN LOG ITEM ---
+        window.deleteMoodItem = function(id) {
+            appState.entries = appState.entries.filter(e => e.id !== id);
+            localStorage.setItem('bloom_entries', JSON.stringify(appState.entries));
+            renderLogs();
+            renderAnalyticsChart();
+        };
+
+        window.deleteDiaryItem = function(id) {
+            appState.diaries = appState.diaries.filter(d => d.id !== id);
+            localStorage.setItem('bloom_diaries', JSON.stringify(appState.diaries));
+            renderDiaries();
+            renderBadgesArcadeGrid();
+        };
+
+        window.deleteActivityItem = function(id) {
+            appState.activities = appState.activities.filter(a => a.id !== id);
+            localStorage.setItem('bloom_activities', JSON.stringify(appState.activities));
+            renderActivities();
+        };
+
+        window.viewFullDiaryModalText = function(id) {
+            const diary = appState.diaries.find(d => d.id === id);
+            if(!diary) return;
+            
+            const modal = document.getElementById('info-modal');
+            const contentArea = document.getElementById('modal-content-area');
+            
+            contentArea.innerHTML = `
+                <div style="border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom:15px;">
+                    <span style="font-size:11px; background:var(--input); border:1px solid var(--border); padding:3px 8px; border-radius:4px; color:var(--text-dim);">${diary.category}</span>
+                    <h2 style="font-size:20px; font-weight:800; margin-top:10px; color:var(--text);">${diary.title}</h2>
+                    <p style="font-size:11px; color:var(--text-dim); margin-top:4px;"><i class="fa-regular fa-clock"></i> Tersimpan lokal: ${diary.date}</p>
+                </div>
+                <div style="font-size:14px; line-height:1.7; color:var(--text); white-space:pre-wrap; max-height:260px; overflow-y:auto; padding-right:5px;">${diary.body}</div>
+            `;
+            modal.style.display = "flex";
+        };
+
+        // --- RENDER GRAFIK ANALISIS EMOSI CHART.JS ---
+        function renderAnalyticsChart() {
+            const ctx = document.getElementById('moodChart');
+            if(!ctx) return;
+            
+            if(moodChartInstance) { moodChartInstance.destroy(); }
+
+            const sortedEntries = [...appState.entries].reverse();
+            const labels = sortedEntries.map(e => {
+                const d = new Date(e.id);
+                if (isNaN(d.getTime())) return e.date; 
+                return d.toLocaleDateString(appState.language === 'id' ? 'id-ID' : 'en-US', { day: '2-digit', month: '2-digit' });
+            });
+
+            const scores = sortedEntries.map(e => parseInt(e.score) || 3);
+            const fullTimestamps = sortedEntries.map(e => {
+                const d = new Date(e.id);
+                if (isNaN(d.getTime())) return e.date; 
+                return d.toLocaleString(appState.language === 'id' ? 'id-ID' : 'en-US', { dateStyle: 'medium', timeStyle: 'short' });
+            });
+            const notes = sortedEntries.map(e => e.note || '');
+
+            const isDark = appState.theme === 'dark';
+            const textColor = isDark ? '#38bdf8' : '#0284c7';
+            const gridColor = isDark ? '#1f2937' : '#cbd5e1';
+
+            moodChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels.length ? labels : ["Empty"],
+                    datasets: [{
+                        label: appState.language === 'id' ? 'Indeks Kebahagiaan' : 'Happiness Index',
+                        data: scores.length ? scores : [3],
+                        borderColor: '#8b5cf6',
+                        backgroundColor: 'rgba(139, 92, 246, 0.08)',
+                        fill: true,
+                        tension: 0.35,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#8b5cf6',
+                        pointBorderColor: isDark ? '#111827' : '#fff',
+                        pointRadius: 5,
+                        pointHoverRadius: 7
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                title: function(context) {
+                                    const index = context[0].dataIndex;
+                                    return fullTimestamps[index] || '';
+                                },
+                                label: function(context) {
+                                    const index = context.dataIndex;
+                                    const scoreVal = scores[index] || 3;
+                                    const noteTxt = notes[index] ? `"${notes[index]}"` : '';
+                                    return ` Skor: ${scoreVal}/5 ${noteTxt}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            min: 1, max: 5,
+                            ticks: {
+                                stepSize: 1,
+                                color: textColor,
+                                font: { family: 'Plus Jakarta Sans', weight: '600' }
+                            },
+                            grid: { color: gridColor }
+                        },
+                        x: {
+                            ticks: {
+                                color: textColor,
+                                font: { family: 'Plus Jakarta Sans', weight: '600' }
+                            },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- REGISTER HANDLERS & PEMICU INPUT ---
+        function setupActionTriggers() {
+            document.getElementById('google-login-btn').onclick = () => {
+                const mockUser = { displayName: "Sahabat Bloom", photoURL: "", email: "user@moodbloom.com" };
+                appState.user = mockUser;
+                localStorage.setItem('bloom_session_user', JSON.stringify(mockUser));
+                routeToDashboard();
+            };
+
+            document.getElementById('logout-btn').onclick = () => {
+                localStorage.removeItem('bloom_session_user');
+                location.reload();
+            };
+
+            document.getElementById('theme-toggle').onclick = () => {
+                appState.theme = appState.theme === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', appState.theme);
+                localStorage.setItem('bloom_theme', appState.theme);
+                renderAnalyticsChart();
+            };
+
+            const moodItems = document.querySelectorAll('.mood-item');
+            moodItems.forEach(item => {
+                item.onclick = () => {
+                    moodItems.forEach(i => i.classList.remove('selected'));
+                    item.classList.add('selected');
+                    appState.selectedMood = {
+                        mood: item.getAttribute('data-mood'),
+                        color: item.getAttribute('data-color'),
+                        score: item.getAttribute('data-score')
+                    };
+                };
+            });
+
+            // 1. Trigger Mencatat Emosi: Menghasilkan 15 XP
+            document.getElementById('save-btn').onclick = () => {
+                if (!appState.selectedMood) {
+                    return alert(appState.language === 'id' ? "Silakan pilih salah satu ekspresi emosimu hari ini!" : "Please choose your mood status expression first!");
+                }
+                const noteText = document.getElementById('mood-note').value.trim();
+                const todayStr = new Date().toDateString();
+
+                if (appState.lastEntryDate !== todayStr) {
+                    appState.streak += 1;
+                    appState.lastEntryDate = todayStr;
+                    localStorage.setItem('bloom_streak_count', appState.streak);
+                    localStorage.setItem('bloom_last_entry_date', todayStr);
+                }
+
+                const newEntry = {
+                    id: Date.now(),
+                    date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }),
+                    mood: appState.selectedMood.mood,
+                    score: appState.selectedMood.score,
+                    color: appState.selectedMood.color,
+                    note: noteText
+                };
+
+                appState.entries.unshift(newEntry);
+                localStorage.setItem('bloom_entries', JSON.stringify(appState.entries));
+
+                // Tambah 15 XP sesuai kesepakatan fitur terbaru
+                addExperiencePoints(15, appState.language === 'id' ? "Catat Refleksi Emosi Harian" : "Daily Mood Cloud Reflection");
+
+                document.getElementById('mood-note').value = '';
+                moodItems.forEach(i => i.classList.remove('selected'));
+                appState.selectedMood = null;
+
+                renderLogs();
+                renderAnalyticsChart();
+                renderBadgesArcadeGrid();
+                refreshGamificationData();
+                alert(appState.language === 'id' ? "Refleksi emosi berhasil disimpan awan lokal! (+15 XP)" : "Mood entry saved securely! (+15 XP)");
+            };
+
+            // Hidrasi Gelas Air
+            document.getElementById('add-water-btn').onclick = () => {
+                if(appState.waterCount < 24) {
+                    appState.waterCount++;
+                    localStorage.setItem('bloom_water', appState.waterCount);
+                    refreshGamificationData();
+                }
+            };
+            document.getElementById('remove-water-btn').onclick = () => {
+                if(appState.waterCount > 0) {
+                    appState.waterCount--;
+                    localStorage.setItem('bloom_water', appState.waterCount);
+                    refreshGamificationData();
+                }
+            };
+
+            // 2. Trigger Diary Baru: Menghasilkan 40 XP
+            document.getElementById('diary-save-btn').onclick = () => {
+                const title = document.getElementById('diary-title').value.trim();
+                const category = document.getElementById('diary-category').value;
+                const body = document.getElementById('diary-body').value.trim();
+
+                if (!title || !body) return alert(appState.language === 'id' ? "Judul dan isi lembar cerita tidak boleh kosong!" : "Title and content field cannot be empty!");
+
+                const newDiary = {
+                    id: Date.now(),
+                    date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }),
+                    title, category, body
+                };
+
+                appState.diaries.unshift(newDiary);
+                localStorage.setItem('bloom_diaries', JSON.stringify(appState.diaries));
+
+                // Tambah 40 XP sesuai kesepakatan fitur terbaru
+                addExperiencePoints(40, appState.language === 'id' ? "Buka Lembaran Diary Baru" : "New Secure Private Diary Sheet");
+
+                document.getElementById('diary-title').value = '';
+                document.getElementById('diary-body').value = '';
+
+                renderDiaries();
+                renderBadgesArcadeGrid();
+                refreshGamificationData();
+                alert(appState.language === 'id' ? "Diary privat berhasil dienkripsi dan disimpan! (+40 XP)" : "Private diary locked securely! (+40 XP)");
+            };
+
+            document.getElementById('diary-search').oninput = (e) => {
+                const query = e.target.value.toLowerCase();
+                const items = document.querySelectorAll('#diary-logs-list .journal-item');
+                items.forEach(item => {
+                    const text = item.innerText.toLowerCase();
+                    item.style.display = text.includes(query) ? 'flex' : 'none';
+                });
+            };
+
+            // 3. Trigger Log Aktivitas: Menghasilkan 20 XP
+            document.getElementById('act-save-btn').onclick = () => {
+                const name = document.getElementById('act-name').value.trim();
+                const type = document.getElementById('act-type').value;
+                const desc = document.getElementById('act-desc').value.trim();
+
+                if (!name) return alert(appState.language === 'id' ? "Nama catatan aktivitas wajib diisi!" : "Activity title is required!");
+
+                const newActivity = {
+                    id: Date.now(),
+                    date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }),
+                    name, type, desc: desc || 'No desc.'
+                };
+
+                appState.activities.unshift(newActivity);
+                localStorage.setItem('bloom_activities', JSON.stringify(appState.activities));
+
+                // Tambah 20 XP sesuai kesepakatan fitur terbaru
+                addExperiencePoints(20, appState.language === 'id' ? "Rekam Log Aktivitas Sosial" : "Social Life Activity Tracker");
+
+                document.getElementById('act-name').value = '';
+                document.getElementById('act-desc').value = '';
+
+                renderActivities();
+                refreshGamificationData();
+                alert(appState.language === 'id' ? "Log aktivitas berhasil terekam! (+20 XP)" : "Activity logged successfully! (+20 XP)");
+            };
+
+            // 4. Trigger Tracker Tidur: Menghasilkan 25 XP
+            document.getElementById('save-sleep-btn').onclick = () => {
+                const hours = parseInt(document.getElementById('sleep-hours').value);
+                if (!hours || hours < 1 || hours > 24) return alert(appState.language === 'id' ? "Masukkan total jam tidur logis (1-24)!" : "Please provide valid sleep hours (1-24)!");
+
+                const quality = document.getElementById('sleep-quality').value;
+                appState.sleepLog = { hours, quality, date: new Date().toLocaleDateString() };
+                localStorage.setItem('bloom_sleep_log', JSON.stringify(appState.sleepLog));
+
+                // Tambah 25 XP sesuai kesepakatan fitur terbaru
+                addExperiencePoints(25, appState.language === 'id' ? "Kunci Manajemen Kualitas Tidur" : "Sleep Quality Tracker Log");
+                
+                document.getElementById('sleep-hours').value = '';
+                renderBadgesArcadeGrid();
+                refreshGamificationData();
+                alert(translations[appState.language].alertSleep);
+            };
+
+            // 5. Trigger Papan Afirmasi Syukur: Menghasilkan 30 XP
+            document.getElementById('save-gratitude-btn').onclick = () => {
+                const g1 = document.getElementById('gr-1').value.trim();
+                const g2 = document.getElementById('gr-2').value.trim();
+                const g3 = document.getElementById('gr-3').value.trim();
+
+                if(!g1 || !g2 || !g3) return alert(appState.language === 'id' ? "Lengkapi ketiga papan afirmasi syukur!" : "Fill out all 3 gratitude inputs!");
+
+                appState.gratitudeLocked = true;
+                localStorage.setItem('bloom_gratitude_locked', 'true');
+
+                // Tambah 30 XP sesuai kesepakatan fitur terbaru
+                addExperiencePoints(30, appState.language === 'id' ? "Kunci Papan Syukur Afirmasi" : "Daily Gratitude Affirmation Locked");
+                
+                document.getElementById('gr-1').value = '';
+                document.getElementById('gr-2').value = '';
+                document.getElementById('gr-3').value = '';
+                
+                renderBadgesArcadeGrid();
+                refreshGamificationData();
+                alert(translations[appState.language].alertGrat);
+            };
+
+            document.getElementById('export-csv-btn').onclick = () => {
+                if(appState.entries.length === 0) return alert(translations[appState.language].noData);
+                let csvContent = "data:text/csv;charset=utf-8,ID,Date,Mood,Score,Note\n";
+                appState.entries.forEach(e => {
+                    csvContent += `${e.id},"${e.date}","${e.mood}",${e.score},"${e.note.replace(/"/g, '""')}"\n`;
+                });
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", `MoodBloom_Analytics_Data_${Date.now()}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            };
+        }
+
+        // --- SISTEM ROUTER NAVIGASI SUB-PAGE MULTI-WORKSPACE ---
+        function setupPageNavigationRouter() {
+            const navButtons = [
+                { btn: 'nav-dashboard-btn', page: 'page-dashboard' },
+                { btn: 'nav-diary-btn', page: 'page-diary' },
+                { btn: 'nav-activity-btn', page: 'page-activity' },
+                { btn: 'nav-wellness-btn', page: 'page-wellness' },
+                { btn: 'nav-arcade-btn', page: 'page-arcade' }
+            ];
+
+            navButtons.forEach(route => {
+                const element = document.getElementById(route.btn);
+                if(element) {
+                    element.onclick = () => {
+                        navButtons.forEach(r => {
+                            document.getElementById(r.btn).classList.remove('active');
+                            document.getElementById(r.page).classList.remove('active-page');
+                        });
+                        element.classList.add('active');
+                        document.getElementById(route.page).classList.add('active-page');
+                        
+                        if(route.page === 'page-dashboard') { renderAnalyticsChart(); }
+                    };
+                }
+            });
+        }
+
+        // --- MANAJEMEN MODAL DIALOG POPUP ---
+        function setupModalTriggers() {
+            const modal = document.getElementById('info-modal');
+            const closeBtn = document.getElementById('modal-close-btn');
+            const contentArea = document.getElementById('modal-content-area');
+
+            if(closeBtn) closeBtn.onclick = () => { modal.style.display = "none"; };
+            window.onclick = (e) => { if (e.target === modal) modal.style.display = "none"; };
+
+            document.getElementById('user-xp-history-btn').onclick = () => {
+                let historyHtml = appState.xpHistory.length === 0 
+                    ? `<div style="text-align: center; padding:20px; color:var(--text-dim); font-size:13px;">Belum ada riwayat perolehan XP hari ini.</div>`
+                    : `<div style="max-height:300px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; margin-top:10px;">`;
+                
+                appState.xpHistory.forEach(h => {
+                    historyHtml += `
+                        <div style="background:var(--input); border:1px solid var(--border); padding:12px; border-radius:10px; display:flex; justify-content:space-between; align-items:center; font-size:12px;">
+                            <div><strong style="color:var(--success);">+${h.points} XP</strong> - <span>${h.reason}</span></div>
+                            <div style="font-size:10px; color:var(--text-dim);">${h.timestamp}</div>
+                        </div>`;
+                });
+                if(appState.xpHistory.length > 0) historyHtml += `</div>`;
+
+                contentArea.innerHTML = `<h3>⚡ XP Reward Journey Logs</h3>${historyHtml}`;
+                modal.style.display = "flex";
+            };
+
+            document.getElementById('user-streak-badge').onclick = () => {
+                const titleHTML = appState.language === 'id' 
+                    ? `<h3 style="margin-bottom:15px; color:#d97706;"><span style="text-shadow: 0 0 8px rgba(245, 158, 11, 0.6);">🔥</span> Aturan Menjaga Day Streak</h3>` 
+                    : `<h3 style="margin-bottom:15px; color:#d97706;"><span style="text-shadow: 0 0 8px rgba(245, 158, 11, 0.6);">🔥</span> Day Streak System Rules</h3>`;
+                
+                const bodyHTML = appState.language === 'id' ? `
+                    <div style="font-size:13px; line-height:1.6; display:flex; flex-direction:column; gap:10px; color:var(--text);">
+                        <p>Mekanisme pelacakan api komitmen harian dihitung secara otomatis:</p>
+                        <ul style="padding-left:20px;">
+                            <li>Simpan minimal 1 catatan emosi suasana hati untuk mengklaim hari beruntun baru.</li>
+                            <li>Jika kamu melewati 1 hari penuh tanpa pengisian, rantai streak terputus menjadi 0.</li>
+                        </ul>
+                    </div>` : `
+                    <div style="font-size:13px; line-height:1.6; display:flex; flex-direction:column; gap:10px; color:var(--text);">
+                        <p>Daily loyalty fire tracking mechanics work automatically:</p>
+                        <ul style="padding-left:20px;">
+                            <li>Record at least 1 mood cloud entry block daily to prolong the streak cycle.</li>
+                            <li>Missing an entry for more than 24 hours resets your streak back to 0.</li>
+                        </ul>
+                    </div>`;
+
+                contentArea.innerHTML = `${titleHTML}${bodyHTML}`;
+                modal.style.display = "flex";
+            };
+
+            document.getElementById('logo-action').onclick = () => {
+                const customAvatar = localStorage.getItem('bloom_custom_avatar');
+                const previewImgHtml = customAvatar 
+                    ? `<img src="${customAvatar}" class="profile-preview-img" id="modal-preview-avatar">`
+                    : `<div style="font-size:28px;">🌸</div>`;
+
+                contentArea.innerHTML = `
+                    <h3>${translations[appState.language].profTitle}</h3>
+                    <div style="margin-top:15px; display:flex; flex-direction:column; gap:12px;">
+                        <div class="profile-upload-wrapper">
+                            <div class="profile-preview-box">${previewImgHtml}</div>
+                            <div style="flex:1;">
+                                <label style="font-size:11px; font-weight:800; display:block; margin-bottom:5px; color:var(--text-dim);">UPLOAD CUSTOM AVATAR PHOTO</label>
+                                <input type="file" id="avatar-file-input" accept="image/*" style="font-size:11px; color:var(--text);">
+                            </div>
+                        </div>
+                        <input id="prof-name" type="text" placeholder="${translations[appState.language].profNamePlh}" value="${appState.user.displayName || ''}">
+                        <div>
+                            <label style="font-size:12px; font-weight:700; block; margin-bottom:6px;">${translations[appState.language].profLangLabel}</label>
+                            <select id="prof-lang">
+                                <option value="id" ${appState.language === 'id' ? 'selected' : ''}>Bahasa Indonesia (ID)</option>
+                                <option value="en" ${appState.language === 'en' ? 'selected' : ''}>English (US)</option>
+                            </select>
+                        </div>
+                        <button id="prof-save-btn" class="primary-btn">${translations[appState.language].profSaveBtn}</button>
+                    </div>`;
+                modal.style.display = "flex";
+
+                const fileInput = document.getElementById('avatar-file-input');
+                if(fileInput) {
+                    fileInput.onchange = (e) => {
+                        const file = e.target.files[0];
+                        if(!file) return;
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                            localStorage.setItem('bloom_custom_avatar', reader.result);
+                            const previewBox = document.querySelector('.profile-preview-box');
+                            if(previewBox) previewBox.innerHTML = `<img src="${reader.result}" class="profile-preview-img">`;
+                            setupAvatarImageLoader();
+                        };
+                        reader.readAsDataURL(file);
+                    };
+                }
+
+                document.getElementById('prof-save-btn').onclick = () => {
+                    const typedName = document.getElementById('prof-name').value.trim();
+                    const chosenLang = document.getElementById('prof-lang').value;
+
+                    if(typedName) appState.user.displayName = typedName;
+                    appState.language = chosenLang;
+
+                    localStorage.setItem('bloom_session_user', JSON.stringify(appState.user));
+                    localStorage.setItem('bloom_language', chosenLang);
+
+                    modal.style.display = "none";
+                    applyLanguageDOM();
+                    document.getElementById('user-greeting').innerText = appState.user.displayName;
+                    refreshGamificationData();
+                    renderLogs();
+                    renderDiaries();
+                    renderActivities();
+                    alert(translations[appState.language].alertSaveProf);
+                };
+            };
+        }
+
+        function setupAvatarImageLoader() {
+            const dataUrl = localStorage.getItem('bloom_custom_avatar');
+            const target = document.getElementById('sidebar-avatar-target');
+            if(!target) return;
+            if(dataUrl) {
+                target.innerHTML = `<img src="${dataUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
+            } else {
+                target.innerHTML = `<span class="logo-small-emoji">🌸</span>`;
+            }
+        }
+
+        // --- GYM KEBANGKITAN PERNAPASAN WELLNESS ENGINE ---
+        function setupWellnessEngine() {
+            const startBtn = document.getElementById('start-breath-btn');
+            const masterContainer = document.getElementById('breath-master-container');
+            const txtOverlay = document.getElementById('breath-guide-text');
+
+            if(!startBtn) return;
+
+            startBtn.onclick = () => {
+                startBtn.disabled = true;
+                startBtn.style.opacity = "0.4";
+                
+                let cycles = 0;
+                function runCycle() {
+                    if (cycles >= 2) { 
+                        txtOverlay.innerText = "COMPLETE";
+                        masterContainer.style.transform = "scale(0.9)";
+                        
+                        // 6. Trigger Gym Pernapasan: Menghasilkan 15 XP
+                        addExperiencePoints(15, appState.language === 'id' ? "Latihan Kebangkitan Pernapasan" : "Deep Breath Mental Exercise");
+                        
+                        refreshGamificationData();
+                        setTimeout(() => {
+                            startBtn.disabled = false;
+                            startBtn.style.opacity = "1";
+                            txtOverlay.innerText = "READY";
+                        }, 2000);
+                        return;
+                    }
+
+                    const stages = [
+                        { txt: appState.language === 'id' ? "TARIK NAPAS" : "INHALE", scale: "scale(1.35)", time: 4000 },
+                        { txt: appState.language === 'id' ? "TAHAN NAPAS" : "HOLD", scale: "scale(1.35)", time: 4000 },
+                        { txt: appState.language === 'id' ? "HEMBUSKAN" : "EXHALE", scale: "scale(0.9)", time: 4000 }
+                    ];
+
+                    let step = 0;
+                    function execStep() {
+                        if (step >= stages.length) {
+                            cycles++;
+                            runCycle();
+                            return;
+                        }
+                        txtOverlay.style.opacity = '0';
+                        setTimeout(() => {
+                            txtOverlay.innerText = stages[step].txt;
+                            txtOverlay.style.opacity = '1';
+                        }, 200);
+                        
+                        masterContainer.style.transform = stages[step].scale;
+                        setTimeout(() => {
+                            step++;
+                            execStep();
+                        }, stages[step].time);
+                    }
+                    execStep();
+                }
+                runCycle();
+            };
+
+            // 7. Trigger Rutinitas Habits Combo: Menghasilkan 20 XP
+            const claimHabitBtn = document.getElementById('claim-habit-xp-btn');
+            if(claimHabitBtn) {
+                claimHabitBtn.onclick = () => {
+                    const checkedCount = document.querySelectorAll('.habit-chk:checked').length;
+                    if(checkedCount === 0) return alert(appState.language === 'id' ? "Selesaikan minimal 1 habit harian!" : "Complete at least 1 daily habit!");
+                    
+                    // Menghasilkan 20 XP
+                    addExperiencePoints(20, appState.language === 'id' ? "Rutinitas Habit Combo" : "Daily Habits Combo");
+                    
+                    refreshGamificationData();
+                    alert(appState.language === 'id' ? "Habit XP berhasil diklaim! 🏋️ (+20 XP)" : "Habit XP successfully claimed! 🏋️ (+20 XP)");
+                    document.querySelectorAll('.habit-chk').forEach(c => c.checked = false);
+                    renderBadgesArcadeGrid();
+                };
+            }
+        }
+    </script>
+</body>
+</html>
